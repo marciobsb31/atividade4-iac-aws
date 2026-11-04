@@ -65,9 +65,12 @@ Crie o inventário local a partir do exemplo e substitua o IP:
 cp ansible/inventory.ini.example ansible/inventory.ini
 ```
 
-No PowerShell, pode-se abrir o arquivo para edição com `notepad ansible\inventory.ini`. Para o controlador WSL, exporte a senha obtida anteriormente, por exemplo `export ANSIBLE_PASSWORD='senha-obtida'`, e execute:
+No PowerShell, pode-se abrir o arquivo para edição com `notepad ansible\inventory.ini`. No terminal WSL, informe a senha sem exibi-la nem gravá-la no histórico do shell e execute:
 
 ```bash
+read -s -p "Senha do Windows: " ANSIBLE_PASSWORD
+export ANSIBLE_PASSWORD
+echo
 ansible-playbook -i ansible/inventory.ini ansible/site.yml 2>&1 | tee evidence/ansible-playbook.log
 ```
 
