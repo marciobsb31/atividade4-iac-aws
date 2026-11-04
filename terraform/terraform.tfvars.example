@@ -1,0 +1,6 @@
+aws_region = "us-east-1"
+key_name   = "REPLACE_WITH_EXISTING_EC2_KEY_PAIR_NAME"
+admin_cidr = "203.0.113.10/32"
+
+# Optional: narrow the public IIS demo page to your IP as well.
+# http_ingress_cidr = "203.0.113.10/32"

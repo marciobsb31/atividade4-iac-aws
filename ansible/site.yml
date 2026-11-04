@@ -1,0 +1,68 @@
+---
+- name: Configure IIS on Windows Server 2019
+  hosts: windows
+  gather_facts: false
+  vars:
+    ansible_connection: winrm
+    ansible_port: 5986
+    ansible_winrm_scheme: https
+    ansible_winrm_transport: ntlm
+    ansible_winrm_server_cert_validation: ignore
+    ansible_user: Administrator
+    ansible_password: "{{ lookup('env', 'ANSIBLE_PASSWORD') }}"
+
+  pre_tasks:
+    - name: Require the Windows administrator password from the environment
+      ansible.builtin.assert:
+        that:
+          - ansible_password | length > 0
+        fail_msg: Set the ANSIBLE_PASSWORD environment variable before running this playbook.
+
+    - name: Wait for WinRM to become available
+      ansible.builtin.wait_for_connection:
+        timeout: 900
+        sleep: 15
+
+  tasks:
+    - name: Install IIS and its management tools
+      ansible.windows.win_feature:
+        name: Web-Server
+        state: present
+        include_sub_features: true
+        include_management_tools: true
+      register: iis_install
+
+    - name: Reboot if Windows requires it after feature installation
+      ansible.windows.win_reboot:
+        reboot_timeout: 1200
+      when: iis_install.reboot_required
+
+    - name: Ensure the IIS service is running
+      ansible.windows.win_service:
+        name: W3SVC
+        state: started
+        start_mode: auto
+
+    - name: Publish the activity demonstration page
+      ansible.windows.win_copy:
+        content: |
+          <!doctype html>
+          <html lang="pt-BR">
+          <head><meta charset="utf-8"><title>Atividade 4 - IaC</title></head>
+          <body>
+            <h1>IIS instalado e configurado com Ansible</h1>
+            <p>Servidor Windows provisionado com Terraform na AWS.</p>
+          </body>
+          </html>
+        dest: C:\inetpub\wwwroot\index.html
+
+    - name: Check the published IIS page over HTTP
+      ansible.builtin.uri:
+        url: "http://{{ ansible_host }}/"
+        status_code: 200
+        return_content: true
+      delegate_to: localhost
+      register: iis_http_check
+      retries: 12
+      delay: 10
+      until: iis_http_check.status == 200

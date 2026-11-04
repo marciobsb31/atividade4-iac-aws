@@ -1,0 +1,2 @@
+[windows]
+windows_iis ansible_host=REPLACE_WITH_TERRAFORM_PUBLIC_IP
