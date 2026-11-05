@@ -9,3 +9,5 @@ crash.*.log
 *.pem
 ansible/inventory.ini
 __pycache__/
+tfplan
+=*

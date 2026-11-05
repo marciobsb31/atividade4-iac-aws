@@ -1,0 +1,13 @@
+﻿data.aws_ssm_parameter.windows_server_2019
+aws_instance.windows
+aws_internet_gateway.main
+aws_route_table.public
+aws_route_table_association.public
+aws_security_group.windows
+aws_subnet.public
+aws_vpc.main
+http_url = "http://3.19.66.94/"
+instance_id = "i-0e02de8fd5972d704"
+public_ip = "3.19.66.94"
+rdp_endpoint = "3.19.66.94:3389"
+winrm_https_endpoint = "3.19.66.94:5986"

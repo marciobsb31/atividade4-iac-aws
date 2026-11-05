@@ -8,6 +8,8 @@
     ansible_winrm_scheme: https
     ansible_winrm_transport: ntlm
     ansible_winrm_server_cert_validation: ignore
+    ansible_winrm_operation_timeout_sec: 60
+    ansible_winrm_read_timeout_sec: 70
     ansible_user: Administrator
     ansible_password: "{{ lookup('env', 'ANSIBLE_PASSWORD') }}"
 
@@ -28,7 +30,6 @@
       ansible.windows.win_feature:
         name: Web-Server
         state: present
-        include_sub_features: true
         include_management_tools: true
       register: iis_install
 
@@ -62,7 +63,10 @@
         status_code: 200
         return_content: true
       delegate_to: localhost
+      vars:
+        ansible_connection: local
+        ansible_python_interpreter: "{{ ansible_playbook_python }}"
       register: iis_http_check
       retries: 12
       delay: 10
-      until: iis_http_check.status == 200
+      until: iis_http_check is succeeded

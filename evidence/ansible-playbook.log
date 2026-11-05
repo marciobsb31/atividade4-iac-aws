@@ -1,0 +1,30 @@
+
+PLAY [Configure IIS on Windows Server 2019] ************************************
+
+TASK [Require the Windows administrator password from the environment] *********
+ok: [windows_iis] => {
+    "changed": false,
+    "msg": "All assertions passed"
+}
+
+TASK [Wait for WinRM to become available] **************************************
+ok: [windows_iis]
+
+TASK [Install IIS and its management tools] ************************************
+ok: [windows_iis]
+
+TASK [Reboot if Windows requires it after feature installation] ****************
+skipping: [windows_iis]
+
+TASK [Ensure the IIS service is running] ***************************************
+ok: [windows_iis]
+
+TASK [Publish the activity demonstration page] *********************************
+ok: [windows_iis]
+
+TASK [Check the published IIS page over HTTP] **********************************
+ok: [windows_iis -> localhost]
+
+PLAY RECAP *********************************************************************
+windows_iis                : ok=6    changed=0    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0   
+

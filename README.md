@@ -8,6 +8,17 @@ Este repositório implementa o fluxo do diagrama da atividade: o Terraform cria 
 
 > **Custos:** uma VM Windows pode gerar custos de EC2, disco e tráfego. Confira os preços AWS antes de começar e destrua os recursos ao terminar. Não abra RDP/WinRM para `0.0.0.0/0`. Nunca publique chave `.pem`, senha, `terraform.tfstate` ou `terraform.tfvars`.
 
+## Estado atual e como retomar
+
+- **Terraform: concluído.** VPC, sub-rede, gateway, rotas, security group e a EC2 Windows Server 2019 (`us-east-2`) já foram criados.
+- **Ansible: pendente.** O playbook precisa ser executado **a partir do seu PC (WSL)**, porque as portas 3389 e 5986 só aceitam o IP em `admin_cidr`.
+- Retomada rápida (raiz do repositório):
+  1. PowerShell: `.\scripts\check.ps1` (confere seu IP e as portas 80/3389/5986).
+  2. Senha: Passo 5 abaixo.
+  3. WSL: `bash scripts/run-ansible.sh` (instala dependências, pede a senha oculta e grava `evidence/ansible-playbook.log`).
+  4. Evidências do Terraform: `terraform -chdir=terraform state list | Out-File -Encoding utf8 evidence\terraform-resources.log` e `terraform -chdir=terraform output | Out-File -Append -Encoding utf8 evidence\terraform-resources.log`.
+  5. Capturas (Passo 9), `git add evidence`, commit, push e, por fim, `terraform destroy`.
+
 ## O que será necessário
 
 1. Conta AWS com permissões para criar VPC, sub-rede, gateway, rotas, security group e instância EC2.
@@ -99,7 +110,7 @@ terraform -chdir=terraform plan -out=tfplan
 Leia o plano. Ele deve criar recursos AWS do exemplo, inclusive uma instância Windows. Se houver erro, **não prossiga**: confira credenciais (`aws sts get-caller-identity`), região, nome do key pair e formato de `admin_cidr`. Só depois de revisar o plano, aplique uma única vez e grave o log:
 
 ```powershell
-terraform -chdir=terraform apply tfplan 2>&1 | Tee-Object -FilePath evidence\terraform-apply.log
+terraform -chdir=terraform apply -no-color tfplan 2>&1 | Out-File -Encoding utf8 evidence\terraform-apply.log
 ```
 
 O Terraform pedirá confirmação; digite `yes`. Espere até terminar. O resultado deve indicar que o apply foi concluído e listar os outputs. Se o comando falhar, corrija a causa e repita o processo; o log de uma execução com falha não é evidência de sucesso.
@@ -213,7 +224,7 @@ Não confunda uma página padrão da Microsoft/IIS com a página do playbook: a 
 
 Faça as capturas **após** Terraform e Ansible terminarem sem erro:
 
-1. **Terraform:** `evidence\terraform-apply.log` deve ser o log completo da execução bem-sucedida e mostrar a criação dos recursos/outputs. Não edite um log para simular uma execução.
+1. **Terraform:** `evidence\terraform-resources.log` lista os recursos existentes (`terraform state list`) e os outputs (`terraform output`), gerados por comando. Se executar um apply completo, `evidence\terraform-apply.log` também serve. Não edite um log para simular uma execução.
 2. **Ansible:** `evidence\ansible-playbook.log` deve mostrar as tarefas concluídas, a checagem HTTP e `failed=0` no `PLAY RECAP`.
 3. **Cloud:** no Console AWS, abra **EC2 → Instances**, selecione a instância criada e capture a tela mostrando o estado **Running**, tipo, região e nome/tags. O IP pode aparecer; não capture credenciais ou a chave privada.
 4. **IIS:** capture o navegador com a URL da instância e a mensagem **“IIS instalado e configurado com Ansible”** visível.
